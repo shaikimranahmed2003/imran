@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGNPDCL Payroll Management System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#0b2e59; --navy2:#123a70; --accent:#1565c0; --accent2:#0d47a1;
+    --bg:#f2f5f9; --card:#ffffff; --border:#dbe2ea; --text:#1c2733; --muted:#5a6b7d;
+    --green:#1b7f4c; --red:#c62828; --amber:#b8860b; --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Segoe UI,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+  header{background:linear-gradient(90deg,var(--navy),var(--navy2));color:#fff;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:19px;margin:0;font-weight:600;letter-spacing:.3px;}
+  header .sub{font-size:12px;opacity:.85;}
+  header .hdr-right{display:flex;gap:10px;align-items:center;font-size:12px;}
+  nav{background:linear-gradient(180deg,#eef1f6,#dfe4ec);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;padding:16px 18px;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  nav button{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.95),transparent 40%),radial-gradient(circle at 80% 25%,rgba(230,236,245,.8),transparent 45%),radial-gradient(circle at 50% 85%,rgba(210,220,235,.7),transparent 55%),linear-gradient(145deg,rgba(255,255,255,.8),rgba(245,247,250,.55));background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 10s ease-in-out infinite;border:1px solid rgba(255,255,255,.7);border-radius:999px;padding:12px 20px;font-size:13px;cursor:pointer;color:#4a5568;font-weight:700;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 16px -4px rgba(30,50,80,.14),0 2px 4px rgba(30,50,80,.06),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -3px 5px rgba(150,165,185,.15);transition:transform .2s ease,box-shadow .35s ease,color .3s ease;}
+  nav button:nth-child(3n+1){animation-duration:8s;}
+  nav button:nth-child(3n+2){animation-duration:11s;}
+  nav button:nth-child(3n+3){animation-duration:9.5s;}
+  nav button .nav-icon{font-size:16px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.12));}
+  nav button::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-20deg);transition:left .6s ease;pointer-events:none;}
+  nav button:hover::before{left:130%;}
+  nav button:hover{color:#e53935;transform:translateY(-3px) scale(1.03);box-shadow:0 14px 24px -6px rgba(229,57,53,.22),0 2px 4px rgba(30,50,80,.08),inset 0 1px 0 rgba(255,255,255,1),inset 0 -3px 5px rgba(150,165,185,.15);}
+  nav button:active{transform:scale(.95);}
+  nav button.active{color:#fff;border-color:rgba(255,255,255,.5);background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.55),transparent 40%),radial-gradient(circle at 80% 25%,rgba(255,138,101,.75),transparent 45%),radial-gradient(circle at 50% 85%,rgba(198,40,40,.85),transparent 55%),linear-gradient(145deg,#ff6b6b,#e53935 55%,#c62828);background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 7s ease-in-out infinite;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(255,255,255,.3) inset,0 10px 22px -4px rgba(198,40,40,.55),0 0 40px rgba(255,90,90,.6),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -3px 6px rgba(150,20,20,.35);}
+  nav button.active .nav-icon{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));}
+  /* One-shot bounce-and-flip, triggered by JS only on click — not a continuous idle animation. */
+  nav button.liquid-click, .btn.liquid-click{animation-name:liquidBounceFlip !important;animation-duration:.6s !important;animation-timing-function:cubic-bezier(.34,1.56,.64,1) !important;animation-iteration-count:1 !important;animation-fill-mode:none !important;}
+  @keyframes liquidSwirl{
+    0%{background-position:20% 20%,80% 25%,50% 85%,0% 50%;}
+    25%{background-position:60% 10%,30% 70%,85% 40%,50% 0%;}
+    50%{background-position:85% 60%,15% 30%,35% 90%,100% 50%;}
+    75%{background-position:30% 85%,70% 15%,20% 35%,50% 100%;}
+    100%{background-position:20% 20%,80% 25%,50% 85%,0% 50%;}
+  }
+  @keyframes liquidBounceFlip{
+    0%{transform:perspective(600px) translateY(0) scale(1,1) rotateY(0deg);}
+    20%{transform:perspective(600px) translateY(2px) scale(1.1,.88) rotateY(0deg);}
+    45%{transform:perspective(600px) translateY(-16px) scale(.9,1.12) rotateY(160deg);}
+    65%{transform:perspective(600px) translateY(-6px) scale(1.04,.96) rotateY(300deg);}
+    82%{transform:perspective(600px) translateY(0) scale(1.08,.92) rotateY(350deg);}
+    100%{transform:perspective(600px) translateY(0) scale(1,1) rotateY(360deg);}
+  }
+  main{padding:20px;max-width:1500px;margin:0 auto;}
+  .tabpage{display:none;}
+  .tabpage.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+  .card h2{margin:0 0 4px 0;font-size:16px;color:var(--navy2);}
+  .card .desc{color:var(--muted);font-size:12.5px;margin-bottom:14px;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:4px;min-width:150px;}
+  .field label{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+  input,select,textarea{padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:var(--text);}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;}
+  .btn{position:relative;overflow:hidden;display:inline-block;border:none;border-radius:999px;padding:9px 20px;font-size:13px;font-weight:700;letter-spacing:.2px;color:#fff;cursor:pointer;background:radial-gradient(circle at 15% 25%,rgba(255,255,255,.55),transparent 42%),radial-gradient(circle at 85% 20%,rgba(144,202,249,.75),transparent 45%),radial-gradient(circle at 50% 85%,rgba(13,71,161,.85),transparent 55%),linear-gradient(135deg,#2196f3,#1565c0 55%,#0d47a1);background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 9s ease-in-out infinite;box-shadow:0 4px 14px rgba(21,101,192,.35),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .2s ease,box-shadow .3s ease;}
+  .btn::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);transition:left .6s ease;pointer-events:none;}
+  .btn:hover::before{left:130%;}
+  .btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 22px rgba(21,101,192,.45),inset 0 1px 0 rgba(255,255,255,.55);}
+  .btn:active{transform:scale(.95);box-shadow:0 2px 8px rgba(21,101,192,.35),inset 0 1px 0 rgba(255,255,255,.3);}
+  .btn.secondary{color:var(--accent2);background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.95),transparent 40%),radial-gradient(circle at 80% 30%,rgba(187,222,251,.6),transparent 45%),radial-gradient(circle at 50% 85%,rgba(227,242,253,.7),transparent 55%),linear-gradient(135deg,rgba(255,255,255,.92),rgba(238,244,252,.92));background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 9s ease-in-out infinite;border:1px solid rgba(21,101,192,.35);box-shadow:0 2px 8px rgba(20,40,70,.08),inset 0 1px 0 rgba(255,255,255,.7);}
+  .btn.secondary::before{background:linear-gradient(120deg,transparent,rgba(21,101,192,.18),transparent);}
+  .btn.secondary:hover{box-shadow:0 6px 16px rgba(21,101,192,.2),inset 0 1px 0 rgba(255,255,255,.8);}
+  .btn.danger{color:var(--red);background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.95),transparent 40%),radial-gradient(circle at 80% 30%,rgba(255,183,177,.6),transparent 45%),radial-gradient(circle at 50% 85%,rgba(253,236,235,.8),transparent 55%),linear-gradient(135deg,#fff,#fdeceb);background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 9s ease-in-out infinite;border:1px solid rgba(198,40,40,.35);box-shadow:0 2px 8px rgba(120,20,20,.08),inset 0 1px 0 rgba(255,255,255,.7);}
+  .btn.danger::before{background:linear-gradient(120deg,transparent,rgba(198,40,40,.18),transparent);}
+  .btn.danger:hover{box-shadow:0 6px 16px rgba(198,40,40,.2);}
+  .btn.green{background:radial-gradient(circle at 15% 25%,rgba(255,255,255,.5),transparent 42%),radial-gradient(circle at 85% 20%,rgba(165,214,167,.75),transparent 45%),radial-gradient(circle at 50% 85%,rgba(20,95,57,.85),transparent 55%),linear-gradient(135deg,#2fae6c,#1b7f4c 55%,#145f39);background-size:220% 220%,220% 220%,220% 220%,200% 200%;animation:liquidSwirl 9s ease-in-out infinite;box-shadow:0 4px 14px rgba(27,127,76,.35),inset 0 1px 0 rgba(255,255,255,.45);}
+  .btn.green:hover{box-shadow:0 8px 22px rgba(27,127,76,.45);}
+  .btn.sm{padding:5px 12px;font-size:12px;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  table.datatable{display:block;overflow-x:auto;white-space:nowrap;}
+  th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;}
+  th{background:#eef2f7;color:var(--navy2);font-weight:700;position:sticky;top:0;}
+  tr:nth-child(even) td{background:#fafbfd;}
+  tr:hover td{background:#eef6ff;}
+  .num{text-align:right;font-variant-numeric:tabular-nums;}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+  .pill.open{background:#e3f2e3;color:var(--green);}
+  .pill.closed{background:#fdeceb;color:var(--red);}
+  .pill.active{background:#e3f2e3;color:var(--green);}
+  .pill.inactive{background:#f0f0f0;color:#777;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+  .toolbar input[type=text]{width:220px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .abs-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  @media (max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+  .section-title{font-weight:700;color:var(--navy2);font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;border-bottom:2px solid var(--border);padding-bottom:4px;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,25,40,.55);z-index:100;align-items:flex-start;justify-content:center;padding:30px 10px;overflow:auto;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:10px;max-width:920px;width:100%;padding:22px;max-height:92vh;overflow:auto;}
+  .modal h3{margin-top:0;color:var(--navy2);}
+  .close-x{float:right;cursor:pointer;font-size:20px;color:var(--muted);border:none;background:none;}
+  .stat-cards{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+  .stat{flex:1;min-width:160px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+  .stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;}
+  .stat .value{font-size:21px;font-weight:700;color:var(--navy2);margin-top:4px;}
+  .note{background:#fff8e1;border:1px solid #f0d98c;color:#7a5c00;padding:10px 12px;border-radius:6px;font-size:12.5px;margin-bottom:12px;}
+  .empty{color:var(--muted);font-style:italic;padding:14px;text-align:center;}
+  footer{text-align:center;color:var(--muted);font-size:11.5px;padding:20px;}
+  .payslip-box{max-width:780px;margin:0 auto;border:2px solid var(--navy2);padding:0;background:#fff;}
+  .payslip-head{background:var(--navy2);color:#fff;text-align:center;padding:12px;font-weight:700;font-size:16px;letter-spacing:.5px;}
+  .payslip-info{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
+  .payslip-info div{padding:6px 14px;font-size:12.5px;border-bottom:1px solid #eef1f5;}
+  .payslip-cols{display:grid;grid-template-columns:1fr 1fr;}
+  .payslip-cols table{font-size:12.5px;}
+  .payslip-cols h4{background:#eef2f7;margin:0;padding:6px 10px;color:var(--navy2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+  .totrow td{font-weight:700;background:#eef6ff !important;}
+  .net-row{background:var(--navy2);color:#fff;text-align:center;padding:10px;font-weight:700;font-size:15px;}
+  @page{ size: portrait; margin: 12mm; }
+  @media print{
+    nav,header,.no-print{display:none !important;}
+    body{background:#fff;}
+    main{padding:0;}
+    .card{border:none;box-shadow:none;padding:0;}
+    .abs-cols{grid-template-columns:1fr 1fr !important;gap:10mm !important;}
+    .abs-cols table{font-size:11px;}
+  }
+  a.linklike{color:var(--accent2);cursor:pointer;text-decoration:underline;font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>TGNPDCL &mdash; Payroll Management System</h1>
+    <div class="sub">Northern Power Distribution Company of Telangana Ltd &mdash; Corporate Office, Warangal</div>
+  </div>
+  <div class="hdr-right">
+    <span id="hdrMonth">Current Month: --</span>
+    <button class="btn secondary sm" onclick="exportBackup()">⬇ Backup (JSON)</button>
+    <label class="btn secondary sm" style="cursor:pointer;">⬆ Restore
+      <input type="file" accept=".json" style="display:none" onchange="importBackup(event)">
+    </label>
+  </div>
+</header>
+
+<nav id="tabNav">
+  <button data-tab="dashboard" class="active"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></button>
+  <button data-tab="master"><span class="nav-icon">🗂️</span><span class="nav-label">Master</span></button>
+  <button data-tab="month"><span class="nav-icon">🗓️</span><span class="nav-label">Month Processing</span></button>
+  <button data-tab="lopleave"><span class="nav-icon">🌙</span><span class="nav-label">LOP &amp; Leave</span></button>
+  <button data-tab="otherentries"><span class="nav-icon">💰</span><span class="nav-label">Other Earning/Deduction</span></button>
+  <button data-tab="increment"><span class="nav-icon">📈</span><span class="nav-label">Annual Grade Increment</span></button>
+  <button data-tab="abstract"><span class="nav-icon">📄</span><span class="nav-label">Abstract</span></button>
+  <button data-tab="payslip"><span class="nav-icon">🧾</span><span class="nav-label">Payslip</span></button>
+</nav>
+
+<main>
+
+<!-- ============ DASHBOARD ============ -->
+<section id="tab-dashboard" class="tabpage active">
+  <div class="stat-cards">
+    <div class="stat"><div class="label">Employees (Active)</div><div class="value" id="statEmpCount">0</div></div>
+    <div class="stat"><div class="label">Current Month</div><div class="value" id="statMonth">--</div></div>
+    <div class="stat"><div class="label">Month Status</div><div class="value" id="statMonthStatus">--</div></div>
+    <div class="stat"><div class="label">Net Pay (Current Month)</div><div class="value" id="statNetPay">0</div></div>
+  </div>
+  <div class="card">
+    <h2>Getting Started</h2>
+    <div class="desc">This application runs entirely inside your browser. All data (employee master, monthly pay runs, LOP, leave, increments, other entries) is saved to this computer's local disc (browser Local Storage). Nothing is sent to any server.</div>
+    <ul>
+      <li><b>Master</b> &ndash; maintain the employee master with all earning/deduction heads.</li>
+      <li><b>Month Processing</b> &ndash; open a payroll month, compute pay for every employee, and Finalize (close) the month; then use "Start Next Month" to roll forward.</li>
+      <li><b>LOP &amp; Leave</b> &ndash; record Loss-of-Pay days and leave sanctions per employee per month.</li>
+      <li><b>Other Earning/Deduction</b> &ndash; one-off or date-ranged earnings/deductions (arrears, recoveries, etc.) with a start &amp; end date; they auto-apply to any month they overlap.</li>
+      <li><b>Annual Grade Increment</b> &ndash; record increments with an effective date; Basic Pay used in processing automatically reflects the latest increment effective on/before the processing month.</li>
+      <li><b>Abstract</b> &amp; <b>Payslip</b> &ndash; GL-code-wise abstract report and individual payslips, both printable.</li>
+    </ul>
+    <div class="note">⚠ Local Storage lives inside this browser only. Use the <b>Backup (JSON)</b> button regularly to save a copy of your data to a file, and <b>Restore</b> to load it back (e.g. on another computer or after clearing browser data).</div>
+  </div>
+</section>
+
+<!-- ============ MASTER ============ -->
+<section id="tab-master" class="tabpage">
+  <div class="card">
+    <h2>Employee Master</h2>
+    <div class="desc">All standing (recurring) earning and deduction figures per employee. These are the defaults used every month unless overridden by Other Earning/Deduction entries or LOP.</div>
+    <div class="toolbar">
+      <button class="btn" onclick="openEmpModal()">+ Add Employee</button>
+      <input type="text" id="empSearch" placeholder="Search name / emp no / designation" oninput="renderMasterTable()">
+      <select id="empStatusFilter" onchange="renderMasterTable()">
+        <option value="all">All Status</option>
+        <option value="Active" selected>Active Only</option>
+        <option value="Inactive">Inactive Only</option>
+      </select>
+      <span style="flex:1"></span>
+      <label class="btn secondary" style="cursor:pointer;">⬆ Import from Excel
+        <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importMasterExcel(event)">
+      </label>
+      <button class="btn secondary" onclick="downloadMasterCSV()">Export Master CSV</button>
+    </div>
+    <div class="note" id="importNote" style="display:none;"></div>
+    <table class="datatable">
+      <thead><tr>
+        <th>Emp No</th><th>Name</th><th>Designation</th><th>Department</th><th>Grade</th>
+        <th class="num">Basic Pay</th><th class="num">Gross (Std)</th><th class="num">Deductions (Std)</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="masterTableBody"></tbody>
+    </table>
+    <div id="masterEmpty" class="empty" style="display:none;">No employees yet. Click "+ Add Employee" to begin.</div>
+  </div>
+</section>
+
+<!-- Employee Modal -->
+<div class="modal-overlay" id="empModalOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeEmpModal()">&times;</button>
+    <h3 id="empModalTitle">Add Employee</h3>
+    <input type="hidden" id="empEditId">
+    <div class="section-title">Basic Details</div>
+    <div class="grid3">
+      <div class="field"><label>Employee No *</label><input id="f_empNo"></div>
+      <div class="field"><label>Name *</label><input id="f_name"></div>
+      <div class="field"><label>Designation</label><input id="f_designation"></div>
+      <div class="field"><label>Mobile No</label><input id="f_mobile"></div>
+      <div class="field"><label>Department</label><input id="f_department"></div>
+      <div class="field"><label>Grade</label><input id="f_grade"></div>
+      <div class="field"><label>Circle</label><input id="f_circle"></div>
+      <div class="field"><label>Office</label><input id="f_office" value="CORP. OFFICE"></div>
+      <div class="field"><label>Station</label><input id="f_station" value="WARANGAL"></div>
+      <div class="field"><label>Date of Joining</label><input type="date" id="f_doj"></div>
+      <div class="field"><label>Status</label>
+        <select id="f_status"><option>Active</option><option>Inactive</option></select>
+      </div>
+    </div>
+    <div class="section-title">Bank &amp; Statutory</div>
+    <div class="grid3">
+      <div class="field"><label>Bank Name</label><input id="f_bankName"></div>
+      <div class="field"><label>Bank A/C No</label><input id="f_bankAcc"></div>
+      <div class="field"><label>IFSC Code</label><input id="f_ifsc"></div>
+      <div class="field"><label>GPF/EPF No</label><input id="f_gpfEpf"></div>
+      <div class="field"><label>PAN No</label><input id="f_pan"></div>
+    </div>
+    <div class="section-title">Earnings (Monthly Standing Amount, ₹)</div>
+    <div class="grid3" id="earningFields"></div>
+    <div class="section-title">Deductions (Monthly Standing Amount, ₹)</div>
+    <div class="grid3" id="deductionFields"></div>
+    <div style="margin-top:16px;text-align:right;">
+      <button class="btn secondary" onclick="closeEmpModal()">Cancel</button>
+      <button class="btn" onclick="saveEmployee()">Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MONTH PROCESSING ============ -->
+<section id="tab-month" class="tabpage">
+  <div class="card">
+    <h2>Month Processing</h2>
+    <div class="desc">Select / create the payroll month, compute pay for all active employees (auto-applying increments, LOP and other date-ranged entries), then Finalize &amp; Close. Use "Start Next Month" to move forward once the month is closed.</div>
+    <div class="row">
+      <div class="field"><label>Payroll Month</label>
+        <select id="monthSelect" onchange="onMonthSelectChange()"></select>
+      </div>
+      <button class="btn secondary" onclick="createNewMonth()">+ Create New Month</button>
+      <button class="btn" onclick="computeMonth()">⟳ Compute / Refresh</button>
+      <button class="btn green" id="btnFinalize" onclick="finalizeMonth()">✔ Finalize &amp; Close Month</button>
+      <button class="btn secondary" id="btnNextMonth" onclick="startNextMonth()">→ Start Next Month</button>
+      <span id="monthStatusPill"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Computed Pay Run</h2>
+    <div class="stat-cards">
+      <div class="stat"><div class="label">Employees</div><div class="value" id="mEmpCount">0</div></div>
+      <div class="stat"><div class="label">Total Gross Earnings</div><div class="value" id="mGross">0</div></div>
+      <div class="stat"><div class="label">Total Deductions</div><div class="value" id="mDeduct">0</div></div>
+      <div class="stat"><div class="label">Total Net Pay</div><div class="value" id="mNet">0</div></div>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="month_search" placeholder="🔍 Search employee name / emp no / designation" oninput="renderMonthStatus()">
+    </div>
+    <table class="datatable">
+      <thead><tr>
+        <th>Emp No</th><th>Name</th><th>Designation</th>
+        <th class="num">LOP Days</th><th class="num">Std Gross (prorated)</th><th class="num">Other Earn. (prorated)</th>
+        <th class="num">LOP Effect (info)</th><th class="num">Gross Payable</th>
+        <th class="num">Std Deduct.</th><th class="num">Other Deduct.</th>
+        <th class="num">Total Deduct.</th><th class="num">Net Pay</th>
+      </tr></thead>
+      <tbody id="monthTableBody"></tbody>
+    </table>
+    <div id="monthEmpty" class="empty" style="display:none;">Click "Compute / Refresh" to generate the pay run for this month.</div>
+  </div>
+</section>
+
+<!-- ============ LEAVE & LOP ============ -->
+<section id="tab-lopleave" class="tabpage">
+  <div class="card">
+    <h2>Leave &amp; LOP Sanction</h2>
+    <div class="desc">Record any sanctioned leave, including Loss of Pay, from one unified form. Choose <b>Loss of Pay (LOP)</b> as the Type to have it reduce the employee's pay for whichever month(s) the range falls in &mdash; a range spanning more than one month is split automatically. <b>Proration rule:</b> Sanctioned Days = Days in Month − LOP Days. Every earning head &mdash; including Basic Pay, DA, HRA and CCA &mdash; is paid in the ratio Sanctioned Days ÷ Days in Month, applied individually to each earning line (not as one lumpsum deduction at the end), <u>except D.A. Arrears</u>, which is always paid in full regardless of LOP. Any other leave type is recorded for reference only and does not affect pay.</div>
+    <div class="row">
+      <div class="field"><label>Emp No (search)</label>
+        <input type="text" id="leave_empno" list="empNoList" placeholder="Type Emp No" oninput="onLeaveEmpNoInput()" style="width:130px;">
+        <datalist id="empNoList"></datalist>
+        <input type="hidden" id="leave_empid">
+      </div>
+      <div class="field" style="min-width:200px;"><label>Employee Name</label><input type="text" id="leave_empname" readonly placeholder="(auto-filled)" style="background:#f4f6f8;"></div>
+      <div class="field"><label>Type</label>
+        <select id="leave_type">
+          <option value="Loss of Pay (LOP)">Loss of Pay (LOP)</option>
+          <option value="Casual Leave">Casual Leave</option>
+          <option value="Earned Leave">Earned Leave</option>
+          <option value="Medical Leave">Medical Leave</option>
+          <option value="Half Pay Leave">Half Pay Leave</option>
+          <option value="Extraordinary Leave">Extraordinary Leave</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field"><label>From</label><input type="date" id="leave_from" onchange="calcLeaveDays()"></div>
+      <div class="field"><label>To</label><input type="date" id="leave_to" onchange="calcLeaveDays()"></div>
+      <div class="field"><label>Total Days</label><input type="number" id="leave_days" readonly style="width:90px;background:#f4f6f8;"></div>
+      <div class="field" style="min-width:220px;"><label>Remarks</label><input id="leave_remarks"></div>
+      <button class="btn" onclick="addLeave()">+ Add Entry</button>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="leave_search" placeholder="🔍 Search employee / type / remarks" oninput="renderLeaveTable()">
+    </div>
+    <table class="datatable">
+      <thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Month</th><th class="num">Days</th><th>Remarks</th><th>Actions</th></tr></thead>
+      <tbody id="leaveTableBody"></tbody>
+    </table>
+    <div id="leaveEmpty" class="empty" style="display:none;">No leave / LOP entries yet.</div>
+  </div>
+</section>
+
+<!-- ============ OTHER ENTRIES ============ -->
+<section id="tab-otherentries" class="tabpage">
+  <div class="card">
+    <h2>Other Earning / Deduction Entry</h2>
+    <div class="desc">One-off or date-ranged earnings/deductions (arrears, ad-hoc recoveries, festival advances, etc). An entry automatically applies to every payroll month it overlaps with (Start Date to End Date). Leave End Date blank for an open-ended / single-month entry.</div>
+    <div class="row">
+      <div class="field"><label>Emp No (search)</label>
+        <input type="text" id="oe_empno" list="empNoList" placeholder="Type Emp No" oninput="onOeEmpNoInput()" style="width:130px;">
+        <input type="hidden" id="oe_empid">
+      </div>
+      <div class="field" style="min-width:200px;"><label>Employee Name</label><input type="text" id="oe_empname" readonly placeholder="(auto-filled)" style="background:#f4f6f8;"></div>
+      <div class="field"><label>Type</label>
+        <select id="oe_type"><option value="Earning">Earning</option><option value="Deduction">Deduction</option></select>
+      </div>
+      <div class="field" style="min-width:220px;"><label>Particulars</label><input id="oe_particulars" placeholder="e.g. Festival Advance Recovery"></div>
+      <div class="field"><label>Amount (₹/month)</label><input type="number" id="oe_amount" min="0" style="width:120px;"></div>
+      <div class="field"><label>Start Date</label><input type="date" id="oe_start"></div>
+      <div class="field"><label>End Date (optional)</label><input type="date" id="oe_end"></div>
+      <button class="btn" onclick="addOtherEntry()">+ Add Entry</button>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="oe_search" placeholder="🔍 Search employee / particulars" oninput="renderOtherTable()">
+    </div>
+    <table class="datatable">
+      <thead><tr><th>Employee</th><th>Type</th><th>Particulars</th><th class="num">Amount</th><th>Start</th><th>End</th><th>Actions</th></tr></thead>
+      <tbody id="otherTableBody"></tbody>
+    </table>
+    <div id="otherEmpty" class="empty" style="display:none;">No other entries yet.</div>
+  </div>
+</section>
+
+<!-- ============ ANNUAL GRADE INCREMENT ============ -->
+<section id="tab-increment" class="tabpage">
+  <div class="card">
+    <h2>Annual Grade Increment</h2>
+    <div class="desc">Record a Basic Pay increment with an effective date. When processing any month on/after the effective date, this Basic Pay is used automatically in place of the master's standing Basic Pay (the latest increment on or before the month wins).</div>
+    <div class="row">
+      <div class="field"><label>Emp No (search)</label>
+        <input type="text" id="inc_empno" list="empNoList" placeholder="Type Emp No" oninput="onIncEmpNoInput()" style="width:130px;">
+        <input type="hidden" id="inc_empid">
+      </div>
+      <div class="field" style="min-width:200px;"><label>Employee Name</label><input type="text" id="inc_empname" readonly placeholder="(auto-filled)" style="background:#f4f6f8;"></div>
+      <div class="field"><label>Effective Date</label><input type="date" id="inc_date"></div>
+      <div class="field"><label>Old Basic Pay</label><input type="number" id="inc_old" readonly style="width:120px;background:#f4f6f8;"></div>
+      <div class="field"><label>New Basic Pay</label><input type="number" id="inc_new" style="width:120px;"></div>
+      <div class="field"><label>New Grade (optional)</label><input id="inc_grade"></div>
+      <div class="field" style="min-width:200px;"><label>Remarks</label><input id="inc_remarks" placeholder="e.g. Annual Grade Increment 2026"></div>
+      <button class="btn" onclick="addIncrement()">+ Add Increment</button>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="inc_search" placeholder="🔍 Search employee" oninput="renderIncTable()">
+    </div>
+    <table class="datatable">
+      <thead><tr><th>Employee</th><th>Effective Date</th><th class="num">Old Basic</th><th class="num">New Basic</th><th>New Grade</th><th>Remarks</th><th>Actions</th></tr></thead>
+      <tbody id="incTableBody"></tbody>
+    </table>
+    <div id="incEmpty" class="empty" style="display:none;">No increments recorded yet.</div>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT ============ -->
+<section id="tab-abstract" class="tabpage">
+  <div class="card no-print">
+    <h2>Payroll Abstract</h2>
+    <div class="row">
+      <div class="field"><label>Month</label><select id="abs_month" onchange="renderAbstract()"></select></div>
+      <button class="btn secondary" onclick="window.print()">🖨 Print Abstract</button>
+    </div>
+  </div>
+  <div class="card" id="abstractCard"></div>
+</section>
+
+<!-- ============ PAYSLIP ============ -->
+<section id="tab-payslip" class="tabpage">
+  <div class="card no-print">
+    <h2>Payslip</h2>
+    <div class="row">
+      <div class="field"><label>Month</label><select id="ps_month" onchange="renderPayslip()"></select></div>
+      <div class="field"><label>🔍 Search Employee</label><input type="text" id="ps_search" placeholder="Name / Emp No" oninput="filterPayslipEmp()" style="width:180px;"></div>
+      <div class="field"><label>Employee</label><select id="ps_emp" onchange="renderPayslip()"></select></div>
+      <button class="btn secondary" onclick="window.print()">🖨 Print Payslip</button>
+    </div>
+  </div>
+  <div class="card no-print">
+    <h2>📱 Employee Mobile App</h2>
+    <div class="desc">Publish the month selected above to the employee app server. Employees sign in with their Employee No and can see only their own payslips. New employees get the default password and must change it on first sign-in.</div>
+    <div class="row">
+      <div class="field"><label>Server address</label><input type="text" id="app_server" placeholder="https://payroll.example.com" style="width:260px;"></div>
+      <div class="field"><label>Admin key</label><input type="password" id="app_key" autocomplete="off" style="width:200px;"></div>
+      <button class="btn" onclick="publishToEmployeeApp()">⬆ Publish month to app</button>
+      <button class="btn secondary" onclick="testAppServer()">Test connection</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="field"><label>Reset employee password</label><input type="text" id="app_reset_emp" placeholder="Emp No" style="width:140px;"></div>
+      <button class="btn secondary" onclick="resetAppPassword()">Reset to default</button>
+    </div>
+    <div id="app_msg" style="display:none;margin-top:12px;padding:10px 12px;border-radius:6px;font-size:12.5px;"></div>
+  </div>
+  <div id="payslipContainer"></div>
+</section>
+
+</main>
+<footer>TGNPDCL Payroll Management System &mdash; data stored locally in this browser only.</footer>
+
+<script>
+/* ===================== DATA MODEL ===================== */
+const EARNING_HEADS = [
+ {key:'basicPay',label:'Basic Pay',code:'7500101'},
+ {key:'hra',label:'House Rent Allowance',code:'7500401'},
+ {key:'da',label:'Dearness Allowance',code:'7500301'},
+ {key:'cca',label:'City Compensatory Allowance',code:'7500402'},
+ {key:'medical',label:'Medical Allowance',code:'7500610'},
+ {key:'corporate',label:'Corporate Allowance',code:'7500450'},
+ {key:'conveyance',label:'Conveyance Allowance',code:'7500403'},
+ {key:'conveyanceHC',label:'Conveyance Allowance-HC',code:'7500403'},
+ {key:'dpe',label:'DPE Allowance',code:'7500406'},
+ {key:'advIncrement',label:'Adv Increment (PGI)',code:'7500102'},
+ {key:'telanganaIncrement',label:'Telangana Increment',code:'7500530'},
+ {key:'familyPlanning',label:'Family Planning Incentive',code:'7500102'},
+ {key:'sportsIncentive',label:'Sports Incentive',code:'7500102'},
+ {key:'hraDir',label:'House Rent Allowance-DIR',code:'7500712'},
+ {key:'personalPay',label:'Personal Pay',code:'7500102'},
+ {key:'deputationAllow',label:'Deputation Allowance',code:'7500450'},
+ {key:'additionalHRA',label:'Additional HRA',code:'7500401'},
+ {key:'washing',label:'Washing Allowance',code:'7500668'},
+ {key:'peshi',label:'Peshi Allowance',code:'7500407'},
+ {key:'specialCompensatory',label:'Special Compensatory Allowance',code:'7500450'},
+ {key:'risk',label:'Risk Allowance',code:'7500450'},
+ {key:'securityGuard',label:'Security Guard Allowance',code:'7500712'},
+ {key:'telephoneOperator',label:'Telephone Operator Allowance',code:'7500712'},
+ {key:'subsistence',label:'Subsistence All 50% <= AAO',code:'7500540'},
+ {key:'specialIncrement24',label:'Special Increment (24Hrs)',code:'7500550'},
+ {key:'daArrears',label:'D.A. Adjustment',code:'7500301'},
+ {key:'splAllowMOGS',label:'Spl.Allow.@24.992%_MOGS',code:'7500102'},
+ {key:'paidHolidays',label:'Paid Holidays Amount',code:'7500614'},
+ {key:'deputationAllowAdj',label:'Deputation Allowance adj',code:'7500405'}
+];
+const DEDUCTION_HEADS = [
+ {key:'personalRecovery',label:'Personal Recovery',code:'7500702'},
+ {key:'otherRecovery',label:'Other Recovery',code:'7500702'},
+ {key:'cpsContribution',label:'CPS Contribution',code:'4401418'},
+ {key:'charitableTrust',label:'TGNPDCL Charitable Trust',code:'5400190'},
+ {key:'ewf',label:'EWF',code:'4401415'},
+ {key:'penalty',label:'Penalty/Penal Interest',code:'7800300'},
+ {key:'incomeTax',label:'Income Tax',code:'4401401'},
+ {key:'mobileBill',label:'Mobile Bill Recovery',code:'7600202'},
+ {key:'groupInsurance',label:'Group Insurance Scheme',code:'5400152'},
+ {key:'taBill',label:'T.A. Bill Recovery',code:'7600567'},
+ {key:'medicalDeductions',label:'Medical Deductions',code:'7500611'},
+ {key:'motorCycleRepay',label:'Motor Cycle Repayment',code:'2700102'},
+ {key:'festivalAdvRepay',label:'Festival Advance Repayment',code:'2700104'},
+ {key:'marriageLoanRepay',label:'Marriage Loan Repayment',code:'2700105'},
+ {key:'carLoanRepay',label:'Car Loan Repayment',code:'2700103'},
+ {key:'eduLoanRepay',label:'Education Loan Repayment',code:'2700106'},
+ {key:'hblConstRepay',label:'HBL Constr.&Purch. Repayment',code:'2700101'},
+ {key:'hblExtRepay',label:'HBL Ext.&Repairs Repayment',code:'2700101'},
+ {key:'intMC',label:'Int. on M.Cycle',code:'6200211'},
+ {key:'intCarLoan',label:'Int. on M.Car Loan',code:'6200211'},
+ {key:'intHBLConst',label:'Int. on HBL Pur.&Const.',code:'6200211'},
+ {key:'intHBLExt',label:'Int. on HBL Ext.&Rep.',code:'6200211'},
+ {key:'computerLoan',label:'Computer Loan',code:'2700128'},
+ {key:'intComputerLoan',label:'Int. on Computer Loan',code:'6200211'},
+ {key:'groupSavings',label:'Group Savings Linked Insurance',code:'4401404'},
+ {key:'courtAttachment',label:'Court Attachment',code:'4401417'},
+ {key:'lic',label:'LIC',code:'4401405'},
+ {key:'gpfProvincial',label:'GPF Contribution_Provincial',code:'5400121'},
+ {key:'gpfOM',label:'GPF Contribution_O&M',code:'5400122'},
+ {key:'bankLoan',label:'Bank Loan',code:'4401406'},
+ {key:'selfFundMedical',label:'Self Fund Medical Scheme',code:'2700300'},
+ {key:'creditCoOp',label:"Empl.Credit Co-Op Society",code:'4401413'},
+ {key:'profTax',label:'Professional Tax',code:'4401403'},
+ {key:'pfContribution',label:'Employee PF Contribution',code:'4401402'}
+];
+
+const STORAGE_KEY = 'tgnpdcl_payroll_data_v1';
+let DATA = null;
+
+const LOP_TYPE = 'Loss of Pay (LOP)';
+function defaultData(){
+  return { employees: [], months: {}, lop: [], leave: [], otherEntries: [], increments: [], currentMonth: '' };
+}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    DATA = raw ? JSON.parse(raw) : defaultData();
+  }catch(e){ DATA = defaultData(); }
+  // migrate missing fields
+  const d = defaultData();
+  for(const k in d){ if(!(k in DATA)) DATA[k] = d[k]; }
+  // one-time migration: fold legacy separate LOP entries into the unified Leave/LOP list
+  if(DATA.lop && DATA.lop.length){
+    DATA.lop.forEach(x=>{
+      DATA.leave.push({id:x.id, empId:x.empId, type:LOP_TYPE, from:x.from, to:x.to, month:x.month, days:x.days, remarks:x.remarks||''});
+    });
+    DATA.lop = [];
+    saveData();
+  }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+}
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmt(n){ n = Number(n)||0; return n.toLocaleString('en-IN',{maximumFractionDigits:2}); }
+function monthLabel(ym){ // '2026-07' -> 'July 2026'
+  if(!ym) return '--';
+  const [y,m] = ym.split('-');
+  const names=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return names[parseInt(m,10)-1] + ' ' + y;
+}
+function daysInMonth(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+function monthBounds(ym){
+  // Returns plain ISO date STRINGS (not Date objects) so all comparisons are
+  // pure lexicographic string compares — immune to local-timezone shifting.
+  const [y,m] = ym.split('-').map(Number);
+  const lastDay = daysInMonth(ym);
+  return { startStr: ym+'-01', endStr: ym+'-'+String(lastDay).padStart(2,'0') };
+}
+function nextMonthOf(ym){
+  const [y,m] = ym.split('-').map(Number);
+  let ny=y, nm=m+1;
+  if(nm>12){ nm=1; ny=y+1; }
+  return ny+'-'+String(nm).padStart(2,'0');
+}
+
+/* ===================== INIT ===================== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadData();
+  buildEmployeeFormFields();
+  if(!DATA.currentMonth){
+    const now = new Date();
+    DATA.currentMonth = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    if(!DATA.months[DATA.currentMonth]) DATA.months[DATA.currentMonth] = {status:'Open', employees:{}};
+    saveData();
+  }
+  setupNav();
+  setupLiquidClickEffect();
+  refreshAllSelectors();
+  renderMasterTable();
+  renderDashboard();
+  renderLeaveTable();
+  renderOtherTable();
+  renderIncTable();
+});
+
+// Plays the one-shot bounce-and-flip animation on any nav tab or .btn button when clicked.
+// Purely visual — does not interfere with the element's own onclick/tab-switch logic.
+function setupLiquidClickEffect(){
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('nav button, .btn');
+    if(!el) return;
+    el.classList.remove('liquid-click');
+    void el.offsetWidth; // force reflow so the animation can restart if clicked again quickly
+    el.classList.add('liquid-click');
+  });
+  document.addEventListener('animationend', (e)=>{
+    if(e.animationName === 'liquidBounceFlip'){
+      e.target.classList.remove('liquid-click');
+    }
+  });
+}
+
+function setupNav(){
+  document.querySelectorAll('#tabNav button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tabpage').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab==='month'){ refreshMonthSelect(); renderMonthStatus(); }
+      if(btn.dataset.tab==='abstract'){ refreshAbstractSelect(); renderAbstract(); }
+      if(btn.dataset.tab==='payslip'){ refreshPayslipSelectors(); renderPayslip(); }
+      if(btn.dataset.tab==='dashboard'){ renderDashboard(); }
+    });
+  });
+}
+
+/* ===================== MASTER: FORM BUILD ===================== */
+function buildEmployeeFormFields(){
+  const eDiv = document.getElementById('earningFields');
+  const dDiv = document.getElementById('deductionFields');
+  eDiv.innerHTML = EARNING_HEADS.map(h=>`
+    <div class="field"><label>${h.label}</label><input type="number" step="0.01" min="0" id="e_${h.key}" value="0"></div>
+  `).join('');
+  dDiv.innerHTML = DEDUCTION_HEADS.map(h=>`
+    <div class="field"><label>${h.label}</label><input type="number" step="0.01" min="0" id="d_${h.key}" value="0"></div>
+  `).join('');
+}
+
+function emptyEmployee(){
+  const emp = {
+    id: uid('emp'), empNo:'', name:'', designation:'', mobile:'', department:'', grade:'',
+    circle:'', office:'CORP. OFFICE', station:'WARANGAL', doj:'', status:'Active',
+    bankName:'', bankAcc:'', ifsc:'', gpfEpf:'', pan:'',
+    earnings:{}, deductions:{}
+  };
+  EARNING_HEADS.forEach(h=> emp.earnings[h.key]=0);
+  DEDUCTION_HEADS.forEach(h=> emp.deductions[h.key]=0);
+  return emp;
+}
+
+function openEmpModal(empId){
+  const overlay = document.getElementById('empModalOverlay');
+  overlay.classList.add('show');
+  let emp;
+  if(empId){
+    emp = DATA.employees.find(e=>e.id===empId);
+    document.getElementById('empModalTitle').textContent = 'Edit Employee';
+  } else {
+    emp = emptyEmployee();
+    document.getElementById('empModalTitle').textContent = 'Add Employee';
+  }
+  document.getElementById('empEditId').value = empId || '';
+  document.getElementById('f_empNo').value = emp.empNo;
+  document.getElementById('f_name').value = emp.name;
+  document.getElementById('f_designation').value = emp.designation;
+  document.getElementById('f_mobile').value = emp.mobile;
+  document.getElementById('f_department').value = emp.department;
+  document.getElementById('f_grade').value = emp.grade;
+  document.getElementById('f_circle').value = emp.circle;
+  document.getElementById('f_office').value = emp.office;
+  document.getElementById('f_station').value = emp.station;
+  document.getElementById('f_doj').value = emp.doj;
+  document.getElementById('f_status').value = emp.status;
+  document.getElementById('f_bankName').value = emp.bankName;
+  document.getElementById('f_bankAcc').value = emp.bankAcc;
+  document.getElementById('f_ifsc').value = emp.ifsc;
+  document.getElementById('f_gpfEpf').value = emp.gpfEpf;
+  document.getElementById('f_pan').value = emp.pan;
+  EARNING_HEADS.forEach(h=> document.getElementById('e_'+h.key).value = emp.earnings[h.key]||0);
+  DEDUCTION_HEADS.forEach(h=> document.getElementById('d_'+h.key).value = emp.deductions[h.key]||0);
+}
+function closeEmpModal(){ document.getElementById('empModalOverlay').classList.remove('show'); }
+
+function saveEmployee(){
+  const id = document.getElementById('empEditId').value;
+  const empNo = document.getElementById('f_empNo').value.trim();
+  const name = document.getElementById('f_name').value.trim();
+  if(!empNo || !name){ alert('Employee No and Name are required.'); return; }
+  let emp;
+  if(id){
+    emp = DATA.employees.find(e=>e.id===id);
+  } else {
+    // check duplicate empNo
+    if(DATA.employees.some(e=>e.empNo===empNo)){ alert('An employee with this Employee No already exists.'); return; }
+    emp = emptyEmployee();
+    DATA.employees.push(emp);
+  }
+  emp.empNo = empNo; emp.name = name;
+  emp.designation = document.getElementById('f_designation').value.trim();
+  emp.mobile = document.getElementById('f_mobile').value.trim();
+  emp.department = document.getElementById('f_department').value.trim();
+  emp.grade = document.getElementById('f_grade').value.trim();
+  emp.circle = document.getElementById('f_circle').value.trim();
+  emp.office = document.getElementById('f_office').value.trim();
+  emp.station = document.getElementById('f_station').value.trim();
+  emp.doj = document.getElementById('f_doj').value;
+  emp.status = document.getElementById('f_status').value;
+  emp.bankName = document.getElementById('f_bankName').value.trim();
+  emp.bankAcc = document.getElementById('f_bankAcc').value.trim();
+  emp.ifsc = document.getElementById('f_ifsc').value.trim();
+  emp.gpfEpf = document.getElementById('f_gpfEpf').value.trim();
+  emp.pan = document.getElementById('f_pan').value.trim();
+  EARNING_HEADS.forEach(h=> emp.earnings[h.key] = parseFloat(document.getElementById('e_'+h.key).value)||0);
+  DEDUCTION_HEADS.forEach(h=> emp.deductions[h.key] = parseFloat(document.getElementById('d_'+h.key).value)||0);
+  saveData();
+  closeEmpModal();
+  renderMasterTable();
+  refreshAllSelectors();
+  renderDashboard();
+}
+
+function deleteEmployee(id){
+  if(!confirm('Delete this employee from the master? This cannot be undone.')) return;
+  DATA.employees = DATA.employees.filter(e=>e.id!==id);
+  saveData();
+  renderMasterTable();
+  refreshAllSelectors();
+  renderDashboard();
+}
+
+function empStdGross(emp){
+  return EARNING_HEADS.reduce((s,h)=> s + (Number(emp.earnings[h.key])||0), 0);
+}
+function empStdDeduct(emp){
+  return DEDUCTION_HEADS.reduce((s,h)=> s + (Number(emp.deductions[h.key])||0), 0);
+}
+
+function renderMasterTable(){
+  const q = (document.getElementById('empSearch')?.value||'').toLowerCase();
+  const statusF = document.getElementById('empStatusFilter')?.value || 'all';
+  let list = DATA.employees.filter(e=>{
+    if(statusF!=='all' && e.status!==statusF) return false;
+    if(!q) return true;
+    return (e.name||'').toLowerCase().includes(q) || (e.empNo||'').toLowerCase().includes(q) || (e.designation||'').toLowerCase().includes(q);
+  });
+  list.sort((a,b)=> (a.empNo||'').localeCompare(b.empNo||''));
+  const body = document.getElementById('masterTableBody');
+  document.getElementById('masterEmpty').style.display = list.length ? 'none':'block';
+  body.innerHTML = list.map(e=>`
+    <tr>
+      <td>${e.empNo}</td><td>${e.name}</td><td>${e.designation||''}</td><td>${e.department||''}</td><td>${e.grade||''}</td>
+      <td class="num">${fmt(e.earnings.basicPay)}</td>
+      <td class="num">${fmt(empStdGross(e))}</td>
+      <td class="num">${fmt(empStdDeduct(e))}</td>
+      <td><span class="pill ${e.status==='Active'?'active':'inactive'}">${e.status}</span></td>
+      <td>
+        <a class="linklike" onclick="openEmpModal('${e.id}')">Edit</a> &nbsp;
+        <a class="linklike" style="color:var(--red)" onclick="deleteEmployee('${e.id}')">Delete</a>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function downloadMasterCSV(){
+  const heads = ['Emp No','Name','Designation','Department','Grade','Status',
+    ...EARNING_HEADS.map(h=>h.label), ...DEDUCTION_HEADS.map(h=>h.label)];
+  const rows = DATA.employees.map(e=>[
+    e.empNo,e.name,e.designation,e.department,e.grade,e.status,
+    ...EARNING_HEADS.map(h=>e.earnings[h.key]||0),
+    ...DEDUCTION_HEADS.map(h=>e.deductions[h.key]||0)
+  ]);
+  let csv = heads.join(',') + '\n' + rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'TGNPDCL_Master_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+/* ===================== SELECTORS (dropdowns) ===================== */
+function empOptionsHTML(includeInactive){
+  let list = DATA.employees.filter(e=> includeInactive || e.status==='Active');
+  list.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+  return list.map(e=>`<option value="${e.id}">${e.empNo} - ${e.name}</option>`).join('');
+}
+function monthOptionsHTML(){
+  const months = Object.keys(DATA.months).sort();
+  return months.map(m=>`<option value="${m}">${monthLabel(m)} (${DATA.months[m].status})</option>`).join('');
+}
+function refreshAllSelectors(){
+  const dl = document.getElementById('empNoList');
+  if(dl){
+    dl.innerHTML = DATA.employees.slice().sort((a,b)=>(a.empNo||'').localeCompare(b.empNo||''))
+      .map(e=>`<option value="${e.empNo}">${e.name}</option>`).join('');
+  }
+  refreshMonthSelect();
+  document.getElementById('hdrMonth').textContent = 'Current Month: ' + monthLabel(DATA.currentMonth);
+}
+// Shared Emp No -> Name/Id lookup used by the Leave&LOP, Other Entries, and Increment tabs.
+// prefix is the form's id prefix, e.g. 'leave' looks up leave_empno / leave_empname / leave_empid.
+function lookupEmpByNo(prefix){
+  const val = document.getElementById(prefix+'_empno').value.trim();
+  const nameField = document.getElementById(prefix+'_empname');
+  const idField = document.getElementById(prefix+'_empid');
+  if(!val){ nameField.value=''; idField.value=''; return null; }
+  const match = DATA.employees.find(e=> (e.empNo||'').toLowerCase() === val.toLowerCase());
+  if(match){ nameField.value = match.name; idField.value = match.id; }
+  else { nameField.value = 'Not found'; idField.value=''; }
+  return match || null;
+}
+function onLeaveEmpNoInput(){ lookupEmpByNo('leave'); }
+function onOeEmpNoInput(){ lookupEmpByNo('oe'); }
+function onIncEmpNoInput(){
+  const match = lookupEmpByNo('inc');
+  document.getElementById('inc_old').value = match ? currentBasicForEmployee(match, null) : '';
+}
+
+
+function refreshMonthSelect(){
+  const el = document.getElementById('monthSelect');
+  if(!el) return;
+  const cur = el.value;
+  el.innerHTML = monthOptionsHTML();
+  el.value = DATA.months[cur] ? cur : DATA.currentMonth;
+  if(!el.value) el.value = DATA.currentMonth;
+  renderMonthStatus();
+}
+function refreshAbstractSelect(){
+  const el = document.getElementById('abs_month');
+  const cur = el.value;
+  el.innerHTML = monthOptionsHTML();
+  el.value = DATA.months[cur] ? cur : DATA.currentMonth;
+}
+function refreshPayslipSelectors(){
+  const mEl = document.getElementById('ps_month');
+  const curM = mEl.value;
+  mEl.innerHTML = monthOptionsHTML();
+  mEl.value = DATA.months[curM] ? curM : DATA.currentMonth;
+  const eEl = document.getElementById('ps_emp');
+  const curE = eEl.value;
+  eEl.innerHTML = empOptionsHTML(true);
+  if(curE) eEl.value = curE;
+}
+function filterPayslipEmp(){
+  const q = (document.getElementById('ps_search').value||'').toLowerCase();
+  const eEl = document.getElementById('ps_emp');
+  const curE = eEl.value;
+  let list = DATA.employees.filter(e=> !q || (e.name||'').toLowerCase().includes(q) || (e.empNo||'').toLowerCase().includes(q));
+  list.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+  eEl.innerHTML = list.map(e=>`<option value="${e.id}">${e.empNo} - ${e.name}</option>`).join('');
+  if(list.some(e=>e.id===curE)) eEl.value = curE;
+  else if(list.length) renderPayslip();
+}
+
+/* ===================== LEAVE & LOP (unified) ===================== */
+// Splits an inclusive date range into per-calendar-month segments, each with its own day count.
+// All arithmetic is done in UTC-epoch terms so results never shift with the browser's local timezone.
+function splitDateRangeByMonth(fromStr, toStr){
+  const [fy,fm,fd] = fromStr.split('-').map(Number);
+  const [ty,tm,td] = toStr.split('-').map(Number);
+  let curTs = Date.UTC(fy, fm-1, fd);
+  const toTs = Date.UTC(ty, tm-1, td);
+  const segments = [];
+  while(curTs <= toTs){
+    const cur = new Date(curTs);
+    const y = cur.getUTCFullYear(), m = cur.getUTCMonth(); // m is 0-based
+    const ym = y+'-'+String(m+1).padStart(2,'0');
+    const monthEndTs = Date.UTC(y, m+1, 0); // last day of this month, UTC midnight
+    const segEndTs = Math.min(monthEndTs, toTs);
+    const days = Math.round((segEndTs - curTs)/86400000) + 1;
+    const fmtUTC = ts => { const d=new Date(ts); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); };
+    segments.push({ month: ym, from: fmtUTC(curTs), to: fmtUTC(segEndTs), days });
+    curTs = segEndTs + 86400000; // move to first day of next month
+  }
+  return segments;
+}
+function calcLeaveDays(){
+  const f = document.getElementById('leave_from').value;
+  const t = document.getElementById('leave_to').value;
+  if(f && t){
+    const d1 = new Date(f), d2 = new Date(t);
+    const diff = Math.round((d2-d1)/86400000) + 1;
+    document.getElementById('leave_days').value = diff>0 ? diff : '';
+  }
+}
+function addLeave(){
+  const empId = document.getElementById('leave_empid').value;
+  const type = document.getElementById('leave_type').value;
+  const from = document.getElementById('leave_from').value;
+  const to = document.getElementById('leave_to').value;
+  const remarks = document.getElementById('leave_remarks').value.trim();
+  if(!empId){ alert('Type a valid Employee No — the Employee Name box must show a match before you can add an entry.'); return; }
+  if(!from || !to || new Date(to) < new Date(from)){ alert('Select a valid From/To date range.'); return; }
+  if(type === LOP_TYPE){
+    // Split across month boundaries so each month's pay run picks up the correct LOP days.
+    const segments = splitDateRangeByMonth(from, to);
+    segments.forEach(seg=>{
+      DATA.leave.push({id:uid('lv'), empId, type, from:seg.from, to:seg.to, month:seg.month, days:seg.days, remarks});
+    });
+  } else {
+    const d1 = new Date(from), d2 = new Date(to);
+    const days = Math.round((d2-d1)/86400000) + 1;
+    DATA.leave.push({id:uid('lv'), empId, type, from, to, month: from.slice(0,7), days, remarks});
+  }
+  saveData();
+  document.getElementById('leave_empno').value=''; document.getElementById('leave_empname').value='';
+  document.getElementById('leave_empid').value='';
+  document.getElementById('leave_from').value=''; document.getElementById('leave_to').value='';
+  document.getElementById('leave_days').value=''; document.getElementById('leave_remarks').value='';
+  renderLeaveTable();
+}
+function deleteLeave(id){
+  DATA.leave = DATA.leave.filter(x=>x.id!==id); saveData(); renderLeaveTable();
+}
+function renderLeaveTable(){
+  const body = document.getElementById('leaveTableBody');
+  const q = (document.getElementById('leave_search')?.value||'').toLowerCase();
+  let list = [...DATA.leave];
+  if(q){
+    list = list.filter(x=>{
+      const emp = DATA.employees.find(e=>e.id===x.empId);
+      const hay = [emp?emp.name:'', emp?emp.empNo:'', x.type, x.remarks].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  list.sort((a,b)=> b.from.localeCompare(a.from));
+  document.getElementById('leaveEmpty').style.display = list.length?'none':'block';
+  body.innerHTML = list.map(x=>{
+    const emp = DATA.employees.find(e=>e.id===x.empId);
+    return `<tr><td>${emp? emp.empNo+' - '+emp.name : '(deleted)'}</td><td>${x.type}</td><td>${x.from}</td><td>${x.to}</td><td>${monthLabel(x.month)}</td><td class="num">${x.days}</td><td>${x.remarks||''}</td>
+    <td><a class="linklike" style="color:var(--red)" onclick="deleteLeave('${x.id}')">Delete</a></td></tr>`;
+  }).join('');
+}
+
+/* ===================== OTHER ENTRIES ===================== */
+function addOtherEntry(){
+  const empId = document.getElementById('oe_empid').value;
+  const type = document.getElementById('oe_type').value;
+  const particulars = document.getElementById('oe_particulars').value.trim();
+  const amount = parseFloat(document.getElementById('oe_amount').value);
+  const start = document.getElementById('oe_start').value;
+  const end = document.getElementById('oe_end').value;
+  if(!empId){ alert('Type a valid Employee No — the Employee Name box must show a match before you can add an entry.'); return; }
+  if(!particulars || !amount || amount<=0 || !start){ alert('Fill particulars, a valid amount and start date.'); return; }
+  DATA.otherEntries.push({id:uid('oe'), empId, type, particulars, amount, start, end: end||null});
+  saveData();
+  document.getElementById('oe_empno').value=''; document.getElementById('oe_empname').value='';
+  document.getElementById('oe_empid').value='';
+  document.getElementById('oe_particulars').value=''; document.getElementById('oe_amount').value='';
+  document.getElementById('oe_start').value=''; document.getElementById('oe_end').value='';
+  renderOtherTable();
+}
+function deleteOtherEntry(id){
+  DATA.otherEntries = DATA.otherEntries.filter(x=>x.id!==id); saveData(); renderOtherTable();
+}
+function renderOtherTable(){
+  const body = document.getElementById('otherTableBody');
+  const q = (document.getElementById('oe_search')?.value||'').toLowerCase();
+  let list = [...DATA.otherEntries];
+  if(q){
+    list = list.filter(x=>{
+      const emp = DATA.employees.find(e=>e.id===x.empId);
+      const hay = [emp?emp.name:'', emp?emp.empNo:'', x.particulars, x.type].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  list.sort((a,b)=> b.start.localeCompare(a.start));
+  document.getElementById('otherEmpty').style.display = list.length?'none':'block';
+  body.innerHTML = list.map(x=>{
+    const emp = DATA.employees.find(e=>e.id===x.empId);
+    return `<tr><td>${emp? emp.empNo+' - '+emp.name : '(deleted)'}</td><td>${x.type}</td><td>${x.particulars}</td><td class="num">${fmt(x.amount)}</td><td>${x.start}</td><td>${x.end||'(open)'}</td>
+    <td><a class="linklike" style="color:var(--red)" onclick="deleteOtherEntry('${x.id}')">Delete</a></td></tr>`;
+  }).join('');
+}
+
+/* ===================== INCREMENTS ===================== */
+function addIncrement(){
+  const empId = document.getElementById('inc_empid').value;
+  const date = document.getElementById('inc_date').value;
+  const oldBasic = parseFloat(document.getElementById('inc_old').value)||0;
+  const newBasic = parseFloat(document.getElementById('inc_new').value);
+  const grade = document.getElementById('inc_grade').value.trim();
+  const remarks = document.getElementById('inc_remarks').value.trim();
+  if(!empId){ alert('Type a valid Employee No — the Employee Name box must show a match before you can add an increment.'); return; }
+  if(!date || !newBasic || newBasic<=0){ alert('Select an effective date and a valid new Basic Pay.'); return; }
+  DATA.increments.push({id:uid('inc'), empId, date, oldBasic, newBasic, grade, remarks});
+  saveData();
+  document.getElementById('inc_empno').value=''; document.getElementById('inc_empname').value='';
+  document.getElementById('inc_empid').value=''; document.getElementById('inc_old').value='';
+  document.getElementById('inc_date').value=''; document.getElementById('inc_new').value='';
+  document.getElementById('inc_grade').value=''; document.getElementById('inc_remarks').value='';
+  renderIncTable();
+}
+function deleteIncrement(id){
+  DATA.increments = DATA.increments.filter(x=>x.id!==id); saveData(); renderIncTable();
+}
+function renderIncTable(){
+  const body = document.getElementById('incTableBody');
+  const q = (document.getElementById('inc_search')?.value||'').toLowerCase();
+  let list = [...DATA.increments];
+  if(q){
+    list = list.filter(x=>{
+      const emp = DATA.employees.find(e=>e.id===x.empId);
+      const hay = [emp?emp.name:'', emp?emp.empNo:'', x.grade, x.remarks].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  list.sort((a,b)=> b.date.localeCompare(a.date));
+  document.getElementById('incEmpty').style.display = list.length?'none':'block';
+  body.innerHTML = list.map(x=>{
+    const emp = DATA.employees.find(e=>e.id===x.empId);
+    return `<tr><td>${emp? emp.empNo+' - '+emp.name : '(deleted)'}</td><td>${x.date}</td><td class="num">${fmt(x.oldBasic)}</td><td class="num">${fmt(x.newBasic)}</td><td>${x.grade||''}</td><td>${x.remarks||''}</td>
+    <td><a class="linklike" style="color:var(--red)" onclick="deleteIncrement('${x.id}')">Delete</a></td></tr>`;
+  }).join('');
+}
+
+// Returns the Basic Pay applicable for an employee as of a given month (YYYY-MM). If month is null, returns latest / current standing basic.
+function currentBasicForEmployee(emp, ym){
+  const cutoff = ym ? monthBounds(ym).endStr : null;
+  let applicable = DATA.increments
+    .filter(i=> i.empId===emp.id)
+    .filter(i=> !cutoff || i.date <= cutoff)
+    .sort((a,b)=> a.date.localeCompare(b.date));
+  if(applicable.length) return applicable[applicable.length-1].newBasic;
+  return emp.earnings.basicPay || 0;
+}
+
+/* ===================== MONTH PROCESSING ===================== */
+function onMonthSelectChange(){ renderMonthStatus(); }
+
+function createNewMonth(){
+  const monthsList = Object.keys(DATA.months).sort();
+  let base = monthsList.length ? monthsList[monthsList.length-1] : DATA.currentMonth;
+  const ny = nextMonthOf(base);
+  if(DATA.months[ny]){ alert(monthLabel(ny) + ' already exists.'); document.getElementById('monthSelect').value = ny; return; }
+  DATA.months[ny] = {status:'Open', employees:{}};
+  DATA.currentMonth = ny;
+  saveData();
+  refreshAllSelectors();
+  document.getElementById('monthSelect').value = ny;
+  renderMonthStatus();
+  renderDashboard();
+}
+
+function renderMonthStatus(){
+  const ym = document.getElementById('monthSelect').value || DATA.currentMonth;
+  const mo = DATA.months[ym];
+  const pill = document.getElementById('monthStatusPill');
+  if(!mo){ pill.innerHTML=''; return; }
+  pill.innerHTML = `<span class="pill ${mo.status==='Open'?'open':'closed'}">${mo.status}</span>`;
+  document.getElementById('btnFinalize').style.display = mo.status==='Open' ? 'inline-block':'none';
+  document.getElementById('btnNextMonth').style.display = mo.status==='Closed' ? 'inline-block':'none';
+  // render table if we already have computed employees
+  renderMonthTable(ym, mo);
+}
+
+// Earning heads that are NEVER prorated for LOP — paid in full regardless of sanctioned days.
+const NO_PRORATE_KEYS = ['daArrears'];
+
+// Core computation for one employee for one month. Returns a result object; does not mutate DATA.
+// Proration rule: Sanctioned Days = Days in Month − LOP Days. EVERY earning (Basic Pay, DA, HRA,
+// CCA and every other standard/ad-hoc earning head) is paid in the ratio Sanctioned Days ÷ Days in
+// Month, EXCEPT D.A. Arrears, which is always paid in full. There is no single lumpsum LOP
+// deduction at the end — each earning line is individually prorated; lopAmount below is kept only
+// as an informational total (full amount minus prorated amount) for display purposes.
+function computeEmployeeForMonth(emp, ym){
+  const dim = daysInMonth(ym);
+  const {startStr, endStr} = monthBounds(ym);
+  const basicFull = currentBasicForEmployee(emp, ym);
+
+  // LOP days sanctioned for this employee in this month
+  const lopDays = DATA.leave.filter(x=> x.empId===emp.id && x.type===LOP_TYPE && x.month===ym).reduce((s,x)=> s + (Number(x.days)||0), 0);
+  const sanctionedDays = Math.max(0, dim - lopDays);
+  const prorationFactor = lopDays > 0 ? (sanctionedDays / dim) : 1;
+
+  // standard earnings, with Basic Pay overridden by increment logic, prorated per head
+  let stdGrossFull = 0, stdGross = 0;
+  const earningBreak = {};
+  EARNING_HEADS.forEach(h=>{
+    const full = h.key==='basicPay' ? basicFull : (Number(emp.earnings[h.key])||0);
+    const prorated = NO_PRORATE_KEYS.includes(h.key) ? full : full * prorationFactor;
+    earningBreak[h.key] = {full, prorated};
+    stdGrossFull += full;
+    stdGross += prorated;
+  });
+  const basic = earningBreak.basicPay.prorated;
+
+  let stdDeduct = DEDUCTION_HEADS.reduce((s,h)=> s + (Number(emp.deductions[h.key])||0), 0);
+
+  // other date-ranged entries overlapping this month (plain ISO string comparison — timezone safe).
+  // Ad-hoc earnings follow the same sanctioned-days proration as standard earnings; deductions are unaffected.
+  let otherEarnFull = 0, otherEarn = 0, otherDeduct = 0;
+  const otherEarnList = [], otherDeductList = [];
+  DATA.otherEntries.filter(x=>x.empId===emp.id).forEach(x=>{
+    const overlaps = x.start <= endStr && (!x.end || x.end >= startStr);
+    if(overlaps){
+      if(x.type==='Earning'){
+        const full = Number(x.amount)||0;
+        const prorated = full * prorationFactor;
+        otherEarnFull += full; otherEarn += prorated;
+        otherEarnList.push(Object.assign({}, x, {amount: prorated, fullAmount: full}));
+      }
+      else { otherDeduct += Number(x.amount)||0; otherDeductList.push(x); }
+    }
+  });
+
+  const grossFull = stdGrossFull + otherEarnFull;
+  const grossPayable = stdGross + otherEarn;
+  const lopAmount = grossFull - grossPayable; // informational total only — already reflected line-by-line above
+
+  const totalDeduct = stdDeduct + otherDeduct;
+  const netPay = grossPayable - totalDeduct;
+
+  return {
+    empId: emp.id, empNo: emp.empNo, name: emp.name, designation: emp.designation,
+    basic, stdGross, otherEarn, otherEarnList, lopDays, sanctionedDays, prorationFactor, lopAmount, grossPayable,
+    stdDeduct, otherDeduct, otherDeductList, totalDeduct, netPay, dim, earningBreak
+  };
+}
+
+function computeMonth(){
+  const ym = document.getElementById('monthSelect').value || DATA.currentMonth;
+  const mo = DATA.months[ym];
+  if(!mo){ alert('Select or create a month first.'); return; }
+  if(mo.status==='Closed'){ alert('This month is closed. Values shown are the finalized snapshot.'); renderMonthTable(ym, mo); return; }
+  const activeEmps = DATA.employees.filter(e=>e.status==='Active');
+  const results = {};
+  activeEmps.forEach(emp=>{ results[emp.id] = computeEmployeeForMonth(emp, ym); });
+  mo.employees = results;
+  saveData();
+  renderMonthTable(ym, mo);
+  renderDashboard();
+}
+
+function renderMonthTable(ym, mo){
+  const body = document.getElementById('monthTableBody');
+  if(!mo || !mo.employees || !Object.keys(mo.employees).length){
+    body.innerHTML='';
+    document.getElementById('monthEmpty').style.display='block';
+    ['mEmpCount','mGross','mDeduct','mNet'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
+  }
+  document.getElementById('monthEmpty').style.display='none';
+  const allRows = Object.values(mo.employees).sort((a,b)=>(a.empNo||'').localeCompare(b.empNo||''));
+  // Totals always reflect the FULL pay run, regardless of the search filter.
+  let totGross=0, totDeduct=0, totNet=0;
+  allRows.forEach(r=>{ totGross += r.grossPayable; totDeduct += r.totalDeduct; totNet += r.netPay; });
+
+  const q = (document.getElementById('month_search')?.value||'').toLowerCase();
+  const rows = q ? allRows.filter(r=> [r.empNo,r.name,r.designation].join(' ').toLowerCase().includes(q)) : allRows;
+
+  body.innerHTML = rows.map(r=>{
+    return `<tr>
+      <td>${r.empNo}</td><td>${r.name}</td><td>${r.designation||''}</td>
+      <td class="num">${r.lopDays||0}</td>
+      <td class="num">${fmt(r.stdGross)}</td>
+      <td class="num">${fmt(r.otherEarn)}</td>
+      <td class="num">${fmt(r.lopAmount)}</td>
+      <td class="num"><b>${fmt(r.grossPayable)}</b></td>
+      <td class="num">${fmt(r.stdDeduct)}</td>
+      <td class="num">${fmt(r.otherDeduct)}</td>
+      <td class="num">${fmt(r.totalDeduct)}</td>
+      <td class="num"><b>${fmt(r.netPay)}</b></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('mEmpCount').textContent = allRows.length;
+  document.getElementById('mGross').textContent = fmt(totGross);
+  document.getElementById('mDeduct').textContent = fmt(totDeduct);
+  document.getElementById('mNet').textContent = fmt(totNet);
+}
+
+function finalizeMonth(){
+  const ym = document.getElementById('monthSelect').value || DATA.currentMonth;
+  const mo = DATA.months[ym];
+  if(!mo){ return; }
+  if(!mo.employees || !Object.keys(mo.employees).length){
+    if(!confirm('No pay run has been computed yet for this month. Compute now and then close?')) return;
+    computeMonth();
+  }
+  if(!confirm('Finalize & Close ' + monthLabel(ym) + '? The pay run will be locked and can no longer be recomputed.')) return;
+  mo.status = 'Closed';
+  saveData();
+  renderMonthStatus();
+  renderDashboard();
+}
+
+function startNextMonth(){
+  const ym = document.getElementById('monthSelect').value || DATA.currentMonth;
+  const mo = DATA.months[ym];
+  if(!mo || mo.status!=='Closed'){ alert('Close the current month first (Finalize & Close), then start the next month.'); return; }
+  const ny = nextMonthOf(ym);
+  if(!DATA.months[ny]) DATA.months[ny] = {status:'Open', employees:{}};
+  DATA.currentMonth = ny;
+  saveData();
+  refreshAllSelectors();
+  document.getElementById('monthSelect').value = ny;
+  renderMonthStatus();
+  renderDashboard();
+}
+
+/* ===================== DASHBOARD ===================== */
+function renderDashboard(){
+  document.getElementById('statEmpCount').textContent = DATA.employees.filter(e=>e.status==='Active').length;
+  document.getElementById('statMonth').textContent = monthLabel(DATA.currentMonth);
+  const mo = DATA.months[DATA.currentMonth];
+  document.getElementById('statMonthStatus').textContent = mo ? mo.status : '--';
+  let net = 0;
+  if(mo && mo.employees) net = Object.values(mo.employees).reduce((s,r)=>s+r.netPay,0);
+  document.getElementById('statNetPay').textContent = '₹ ' + fmt(net);
+  document.getElementById('hdrMonth').textContent = 'Current Month: ' + monthLabel(DATA.currentMonth);
+}
+
+/* ===================== ABSTRACT ===================== */
+function renderAbstract(){
+  const ym = document.getElementById('abs_month').value || DATA.currentMonth;
+  const mo = DATA.months[ym];
+  const card = document.getElementById('abstractCard');
+  if(!mo || !mo.employees || !Object.keys(mo.employees).length){
+    card.innerHTML = '<div class="empty">No computed pay run for this month yet. Go to Month Processing, compute the month, then return here.</div>';
+    return;
+  }
+  const rows = Object.values(mo.employees);
+  // Sum standard earning heads across all employees (using basic override where applicable)
+  const earnSums = {};
+  EARNING_HEADS.forEach(h=> earnSums[h.key]=0);
+  const deductSums = {};
+  DEDUCTION_HEADS.forEach(h=> deductSums[h.key]=0);
+
+  rows.forEach(r=>{
+    EARNING_HEADS.forEach(h=>{
+      earnSums[h.key] += r.earningBreak[h.key].prorated; // already prorated per-head (DA Arrears stays full)
+    });
+  });
+  DATA.employees.filter(e=>rows.some(r=>r.empId===e.id)).forEach(emp=>{
+    DEDUCTION_HEADS.forEach(h=>{
+      deductSums[h.key] += Number(emp.deductions[h.key])||0;
+    });
+  });
+  // add other entries into matching bucket via a generic "Other Earnings/Deductions" line
+  const otherEarnTotal = rows.reduce((s,r)=>s+r.otherEarn,0);
+  const otherDeductTotal = rows.reduce((s,r)=>s+r.otherDeduct,0);
+  const lopTotal = rows.reduce((s,r)=>s+r.lopAmount,0); // informational only — the proration above already reduced each row
+  const totalLopDays = rows.reduce((s,r)=>s+(r.lopDays||0),0);
+
+  const totalEarnings = rows.reduce((s,r)=>s+r.grossPayable,0); // already the prorated (sanctioned-days) total
+  const totalDeductions = rows.reduce((s,r)=>s+r.totalDeduct,0);
+  const netPay = rows.reduce((s,r)=>s+r.netPay,0);
+
+  let earnRows = EARNING_HEADS.map(h=> earnSums[h.key]!==0 ? `<tr><td>${h.code}</td><td>${h.label}</td><td class="num">${fmt(earnSums[h.key])}</td></tr>` : '').join('');
+  if(otherEarnTotal) earnRows += `<tr><td>&mdash;</td><td>Other Earnings (date-ranged entries)</td><td class="num">${fmt(otherEarnTotal)}</td></tr>`;
+
+  let deductRows = DEDUCTION_HEADS.map(h=> deductSums[h.key]!==0 ? `<tr><td>${h.code}</td><td>${h.label}</td><td class="num">${fmt(deductSums[h.key])}</td></tr>` : '').join('');
+  if(otherDeductTotal) deductRows += `<tr><td>&mdash;</td><td>Other Deductions (date-ranged entries)</td><td class="num">${fmt(otherDeductTotal)}</td></tr>`;
+
+  card.innerHTML = `
+    <div style="text-align:center;margin-bottom:10px;">
+      <h2 style="margin:0;">NORTHERN POWER DISTRIBUTION COMPANY OF TELANGANA LTD</h2>
+      <div style="font-weight:700;">PAYROLL ABSTRACT FOR THE MONTH OF ${monthLabel(ym).toUpperCase()}</div>
+      <div style="font-size:12px;color:var(--muted);">UNIT NAME: CORPORATE OFFICE &nbsp;|&nbsp; Employees Processed: ${rows.length}${totalLopDays ? ' &nbsp;|&nbsp; Total LOP Days: ' + totalLopDays + ' &nbsp;|&nbsp; Net Effect of LOP Proration (informational, already applied above): -₹ ' + fmt(lopTotal) : ''}</div>
+    </div>
+    <div class="abs-cols">
+      <div>
+        <h4 style="background:#eef2f7;padding:6px 10px;margin:0;border:1px solid var(--border);">GROSS SALARY DETAILS</h4>
+        <table><thead><tr><th>GL A/C No</th><th>Details</th><th class="num">Amount</th></tr></thead>
+        <tbody>${earnRows}
+        <tr class="totrow"><td colspan="2">Total Earnings</td><td class="num">${fmt(totalEarnings)}</td></tr>
+        </tbody></table>
+      </div>
+      <div>
+        <h4 style="background:#eef2f7;padding:6px 10px;margin:0;border:1px solid var(--border);">RECOVERY DETAILS</h4>
+        <table><thead><tr><th>GL A/C No</th><th>Details</th><th class="num">Amount</th></tr></thead>
+        <tbody>${deductRows}
+        <tr class="totrow"><td colspan="2">Total Deductions</td><td class="num">${fmt(totalDeductions)}</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="net-row" style="margin-top:14px;border-radius:6px;">NET PAY : ₹ ${fmt(netPay)}</div>
+  `;
+}
+
+/* ===================== PAYSLIP ===================== */
+function renderPayslip(){
+  const ym = document.getElementById('ps_month').value || DATA.currentMonth;
+  const empId = document.getElementById('ps_emp').value;
+  const container = document.getElementById('payslipContainer');
+  const mo = DATA.months[ym];
+  const emp = DATA.employees.find(e=>e.id===empId);
+  if(!emp){ container.innerHTML = '<div class="empty">Select an employee.</div>'; return; }
+  let r = mo && mo.employees ? mo.employees[empId] : null;
+  if(!r){
+    // live preview if not yet computed/finalized
+    r = computeEmployeeForMonth(emp, ym);
+  }
+  const earnRowsHTML = EARNING_HEADS.map(h=>{
+    const v = r.earningBreak ? r.earningBreak[h.key].prorated : (h.key==='basicPay' ? r.basic : (Number(emp.earnings[h.key])||0));
+    return v ? `<tr><td>${h.label}${(r.lopDays && !NO_PRORATE_KEYS.includes(h.key)) ? ' <span style="color:var(--muted);font-weight:400;">(prorated)</span>' : ''}</td><td class="num">${fmt(v)}</td></tr>` : '';
+  }).join('') + (r.otherEarnList||[]).map(x=>`<tr><td>${x.particulars}${(r.lopDays && x.fullAmount!==undefined) ? ' <span style="color:var(--muted);font-weight:400;">(prorated)</span>' : ''}</td><td class="num">${fmt(x.amount)}</td></tr>`).join('');
+  const deductRowsHTML = DEDUCTION_HEADS.map(h=>{
+    const v = Number(emp.deductions[h.key])||0;
+    return v ? `<tr><td>${h.label}</td><td class="num">${fmt(v)}</td></tr>` : '';
+  }).join('') + (r.otherDeductList||[]).map(x=>`<tr><td>${x.particulars}</td><td class="num">${fmt(x.amount)}</td></tr>`).join('');
+
+  container.innerHTML = `
+    <div class="payslip-box">
+      <div class="payslip-head">NORTHERN POWER DISTRIBUTION COMPANY OF TELANGANA LTD</div>
+      <div class="payslip-info">
+        <div><b>ID</b>: ${emp.empNo}</div><div><b>LOP / Sanctioned Days</b>: ${r.lopDays||0} / ${r.sanctionedDays!==undefined ? r.sanctionedDays : (r.dim-(r.lopDays||0))} (of ${r.dim})</div>
+        <div><b>Name</b>: ${emp.name}</div><div><b>Emp Group</b>: ${emp.status}</div>
+        <div><b>Designation</b>: ${emp.designation||''}</div><div><b>Bank A/C No</b>: ${emp.bankAcc||''}</div>
+        <div><b>Office</b>: ${emp.office||''}</div><div><b>Bank Name</b>: ${emp.bankName||''}</div>
+        <div><b>Station</b>: ${emp.station||''}</div><div><b>GPF/EPF No</b>: ${emp.gpfEpf||''}</div>
+        <div><b>Pay Period</b>: ${monthLabel(ym)}</div><div><b>PAN No</b>: ${emp.pan||''}</div>
+      </div>
+      <div class="payslip-cols">
+        <div>
+          <h4>Earnings</h4>
+          <table><tbody>${earnRowsHTML || '<tr><td colspan=2 style="text-align:center;color:#888;">None</td></tr>'}</tbody></table>
+        </div>
+        <div>
+          <h4>Deductions</h4>
+          <table><tbody>${deductRowsHTML || '<tr><td colspan=2 style="text-align:center;color:#888;">None</td></tr>'}</tbody></table>
+        </div>
+      </div>
+      <div class="payslip-info" style="border-top:2px solid var(--navy2);">
+        <div><b>Total Earnings</b>: ₹ ${fmt(r.grossPayable)}</div>
+        <div><b>Total Deductions</b>: ₹ ${fmt(r.totalDeduct)}</div>
+      </div>
+      <div class="net-row">Take Home Salary : ₹ ${fmt(r.netPay)}</div>
+    </div>
+  `;
+}
+
+/* ===================== EXCEL IMPORT (Master sheet) ===================== */
+const EARNING_HEADER_MAP = {
+ 'Basic Pay':'basicPay','House Rent Allowance':'hra','Dearness Allowance':'da',
+ 'City Compensatory Allowan':'cca','Medical  Allowance':'medical','Medical Allowance':'medical',
+ 'Corporate Allowance':'corporate','Conveyance Allowance':'conveyance','Conveyance Allow- Phy. HC':'conveyanceHC',
+ 'DPE Allowance':'dpe','Adv Increment (PGI)':'advIncrement','Telangana Increment':'telanganaIncrement',
+ 'Family Planning Incentive':'familyPlanning','Sports Incentive':'sportsIncentive',
+ 'House Rent Allowance-DIR':'hraDir','Personal  Pay':'personalPay','Personal Pay':'personalPay',
+ 'Deputation Allowance':'deputationAllow','Additional HRA':'additionalHRA','Washing Allowance':'washing',
+ 'Peshi Allowance':'peshi','Special Compensatory Allw':'specialCompensatory','Risk Allowance':'risk',
+ 'Security Guard Allowance':'securityGuard','Telephone Operator Allow.':'telephoneOperator',
+ 'Subsistnce All 50% <= AAO':'subsistence','Special Increment (24Hrs)':'specialIncrement24',
+ 'DA Arrears 2/5':'daArrears','Spl.Allow.@24.992%_MOGS':'splAllowMOGS',
+ 'Deputation Allowance adj':'deputationAllowAdj','Paid Holidays Amount':'paidHolidays'
+};
+const DEDUCTION_HEADER_MAP = {
+ 'Personal Recovery':'personalRecovery','Other Recovery':'otherRecovery','CPS_Contribution':'cpsContribution',
+ 'TGNPDCL Charitable Trust':'charitableTrust','EWF':'ewf','Penalty/Penal Interest':'penalty',
+ 'Income tax':'incomeTax','Mobile bill recovery':'mobileBill','Group Insurance Scheme':'groupInsurance',
+ 'T.A.Bill Recovery':'taBill','Medical Deductions':'medicalDeductions','Repayment-Motor C':'motorCycleRepay',
+ 'Repayment-Festival':'festivalAdvRepay','Repayment-Marraiage':'marriageLoanRepay',
+ 'Regular repayment-Car Loa':'carLoanRepay','Repayment-Education':'eduLoanRepay',
+ 'Repayment-HBL - C':'hblConstRepay','Regular repayment-HBL - E':'hblExtRepay',
+ 'Repayment-MC- Int':'intMC','Repayment-CL- Int':'intCarLoan','Repymnt-HBL-C-Int':'intHBLConst',
+ 'Repay-HBL - E-Int':'intHBLExt','Repay_Computer_loan':'computerLoan','Int .On Computer Loan':'intComputerLoan',
+ 'Group Savings Linked Insu':'groupSavings','Court  attachment':'courtAttachment','LIC':'lic',
+ 'GPF_Provincial':'gpfProvincial','GPF_OM':'gpfOM','Bank Loan':'bankLoan',
+ 'Self Fund Medical Scheme':'selfFundMedical','Empl.Credit Co-Op Society':'creditCoOp',
+ 'Prof Tax - split period':'profTax','Ee PF contribution':'pfContribution'
+};
+
+function importMasterExcel(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      const sheetName = wb.SheetNames.includes('Master') ? 'Master' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:null});
+      if(!rows.length){ alert('No data rows found in the selected sheet.'); return; }
+      let added=0, updated=0, skipped=0;
+      rows.forEach(row=>{
+        const empNo = (row['Employee No.'] ?? row['Employee No'] ?? '').toString().trim();
+        const name = (row['Employee Name'] ?? row['Name'] ?? '').toString().trim();
+        if(!empNo || !name){ skipped++; return; }
+        let emp = DATA.employees.find(x=>x.empNo===empNo);
+        const isNew = !emp;
+        if(isNew){ emp = emptyEmployee(); DATA.employees.push(emp); }
+        emp.empNo = empNo; emp.name = name;
+        emp.designation = (row['Designation']||'').toString().trim();
+        emp.mobile = (row['Mobile No']||'').toString().trim();
+        emp.department = (row['Department']||'').toString().trim();
+        emp.grade = (row['Grade']||'').toString().trim();
+        emp.circle = (row['Circle']||'').toString().trim();
+        emp.office = (row['Bus. Area Description']||emp.office||'CORP. OFFICE').toString().trim();
+        emp.station = emp.station || 'WARANGAL';
+        emp.bankName = (row['BANK NAME']||row['Bank Name']||'').toString().trim();
+        emp.bankAcc = (row['Bank Account']||'').toString().trim();
+        emp.ifsc = (row['ISFC Code']||row['IFSC Code']||'').toString().trim();
+        emp.gpfEpf = (row['GPF/EPF No']||'').toString().trim();
+        emp.pan = (row['PAN']||'').toString().trim();
+        Object.entries(EARNING_HEADER_MAP).forEach(([mh,key])=>{
+          if(row[mh] !== undefined && row[mh] !== null) emp.earnings[key] = parseFloat(row[mh])||0;
+        });
+        Object.entries(DEDUCTION_HEADER_MAP).forEach(([mh,key])=>{
+          if(row[mh] !== undefined && row[mh] !== null) emp.deductions[key] = parseFloat(row[mh])||0;
+        });
+        const gross = parseFloat(row['Gross Salary']);
+        if(!isNaN(gross)) emp.status = gross > 0 ? 'Active' : 'Inactive';
+        else if(isNew) emp.status = 'Active';
+        if(isNew) added++; else updated++;
+      });
+      saveData();
+      renderMasterTable();
+      refreshAllSelectors();
+      renderDashboard();
+      const note = document.getElementById('importNote');
+      note.style.display='block';
+      note.textContent = `Import complete: ${added} new employee(s) added, ${updated} updated, ${skipped} row(s) skipped (missing Employee No / Name).`;
+    }catch(err){
+      alert('Could not read this Excel file: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  evt.target.value = '';
+}
+
+/* ===================== BACKUP / RESTORE ===================== */
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'TGNPDCL_Payroll_Backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+function importBackup(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!confirm('This will REPLACE all current data in this browser with the contents of the backup file. Continue?')) return;
+      DATA = parsed;
+      const d = defaultData();
+      for(const k in d){ if(!(k in DATA)) DATA[k] = d[k]; }
+      saveData();
+      refreshAllSelectors();
+      renderMasterTable();
+      renderDashboard();
+      renderLeaveTable(); renderOtherTable(); renderIncTable();
+      alert('Backup restored successfully.');
+    }catch(e){
+      alert('Could not read this file as a valid backup: ' + e.message);
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+/* ===================== EMPLOYEE MOBILE APP: PUBLISH PAYSLIPS ===================== */
+const APP_SERVER_KEY = 'tgnpdcl_employee_app_server_v1';   // separate key: not part of the payroll backup
+function appMsg(text, ok){
+  const el = document.getElementById('app_msg');
+  el.style.display = 'block';
+  el.style.background = ok ? '#e8f5e9' : '#fdecea';
+  el.style.border = '1px solid ' + (ok ? '#a5d6a7' : '#f5b7b1');
+  el.style.color = ok ? '#1b5e20' : '#8e1b13';
+  el.textContent = text;
+}
+function appServerUrl(){ return (document.getElementById('app_server').value || '').trim().replace(/\/+$/, ''); }
+function appRemember(){ try{ localStorage.setItem(APP_SERVER_KEY, appServerUrl()); }catch(e){} }
+function appMaskTail(v, keep){
+  v = String(v || '').trim();
+  return v.length > keep ? 'X'.repeat(v.length - keep) + v.slice(-keep) : v;   // only the last digits leave this computer
+}
+function appRound(n){ return Math.round((Number(n) || 0) * 100) / 100; }
+
+// Same lines as renderPayslip(), so the phone shows exactly what the printed payslip shows.
+function buildAppPayslip(emp, ym, r){
+  const earnings = EARNING_HEADS.map(h=>{
+    const eb = r.earningBreak && r.earningBreak[h.key];
+    const v = eb ? eb.prorated : (h.key==='basicPay' ? r.basic : (Number(emp.earnings[h.key])||0));
+    return {label:h.label, amount:appRound(v), prorated: !!(r.lopDays && !NO_PRORATE_KEYS.includes(h.key))};
+  }).filter(x=>x.amount);
+  (r.otherEarnList||[]).forEach(x=> earnings.push({label:x.particulars, amount:appRound(x.amount), prorated: !!(r.lopDays && x.fullAmount!==undefined)}));
+  const deductions = DEDUCTION_HEADS.map(h=>({label:h.label, amount:appRound(Number(emp.deductions[h.key])||0), prorated:false})).filter(x=>x.amount);
+  (r.otherDeductList||[]).forEach(x=> deductions.push({label:x.particulars, amount:appRound(x.amount), prorated:false}));
+  return {
+    month: ym, label: monthLabel(ym),
+    lopDays: r.lopDays||0,
+    sanctionedDays: r.sanctionedDays!==undefined ? r.sanctionedDays : (r.dim-(r.lopDays||0)),
+    daysInMonth: r.dim,
+    earnings, deductions,
+    totalEarnings: appRound(r.grossPayable), totalDeductions: appRound(r.totalDeduct), net: appRound(r.netPay)
+  };
+}
+
+async function appFetch(path, options){
+  const url = appServerUrl();
+  if(!url) throw new Error('Enter the server address first.');
+  const key = document.getElementById('app_key').value;
+  if(!key) throw new Error('Enter the admin key first.');
+  let resp;
+  try{
+    resp = await fetch(url + path, Object.assign({headers:{'Content-Type':'application/json','X-Admin-Key':key}}, options));
+  }catch(e){
+    throw new Error('Could not reach the server. Check the address (use https://) and your internet connection.');
+  }
+  let body = {};
+  try{ body = await resp.json(); }catch(e){}
+  if(!resp.ok) throw new Error(body.error || ('Server returned ' + resp.status));
+  return body;
+}
+
+async function testAppServer(){
+  try{
+    const url = appServerUrl();
+    if(!url) throw new Error('Enter the server address first.');
+    const r = await fetch(url + '/api/health').catch(()=>{ throw new Error('Could not reach the server.'); });
+    if(!r.ok) throw new Error('Server returned ' + r.status);
+    // the key is verified with a harmless request that the server rejects if the key is wrong
+    await appFetch('/api/admin/reset-password', {method:'POST', body: JSON.stringify({empNo:'__key_check__'})}).catch(e=>{
+      if(!/not found/i.test(e.message)) throw e;
+    });
+    appRemember();
+    appMsg('Connected. The server is reachable and the admin key is accepted.', true);
+  }catch(e){ appMsg(e.message, false); }
+}
+
+async function publishToEmployeeApp(){
+  try{
+    const ym = document.getElementById('ps_month').value || DATA.currentMonth;
+    const mo = DATA.months[ym];
+    if(!mo || !mo.employees || !Object.keys(mo.employees).length)
+      throw new Error('Nothing to publish: process ' + monthLabel(ym) + ' in Month Processing first.');
+    if(mo.status !== 'Closed' && !confirm(monthLabel(ym) + ' is not finalized yet. Employees will see these figures. Publish anyway?')) return;
+    const employees = [];
+    Object.keys(mo.employees).forEach(id=>{
+      const emp = DATA.employees.find(e=>e.id===id);
+      if(!emp || !String(emp.empNo||'').trim()) return;
+      employees.push({
+        empNo: String(emp.empNo).trim(),
+        profile: {
+          name: emp.name, designation: emp.designation, office: emp.office, station: emp.station,
+          department: emp.department, doj: emp.doj, bankName: emp.bankName,
+          bankAccMasked: appMaskTail(emp.bankAcc, 4), panMasked: appMaskTail(emp.pan, 4), gpfEpf: emp.gpfEpf
+        },
+        payslip: buildAppPayslip(emp, ym, mo.employees[id])
+      });
+    });
+    if(!employees.length) throw new Error('No employees with an Employee No to publish.');
+    appMsg('Publishing ' + employees.length + ' payslip(s)…', true);
+    const out = await appFetch('/api/admin/publish', {method:'POST', body: JSON.stringify({month: ym, employees})});
+    appRemember();
+    appMsg('Published ' + out.published + ' payslip(s) for ' + monthLabel(ym) + '. New employees added: ' + out.newEmployees + (out.skipped ? ('. Skipped: ' + out.skipped) : '') + '.', true);
+  }catch(e){ appMsg(e.message, false); }
+}
+
+async function resetAppPassword(){
+  try{
+    const empNo = document.getElementById('app_reset_emp').value.trim();
+    if(!empNo) throw new Error('Enter the Employee No.');
+    if(!confirm('Reset the app password for ' + empNo + ' to the default? They must set a new one on next sign-in.')) return;
+    await appFetch('/api/admin/reset-password', {method:'POST', body: JSON.stringify({empNo})});
+    appMsg('Password for ' + empNo + ' reset to the default.', true);
+  }catch(e){ appMsg(e.message, false); }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  try{ const v = localStorage.getItem(APP_SERVER_KEY); if(v) document.getElementById('app_server').value = v; }catch(e){}
+});
+</script>
+</body>
+</html>

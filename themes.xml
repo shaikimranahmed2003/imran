@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.SalaryApp" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
